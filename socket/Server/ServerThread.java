@@ -180,16 +180,22 @@ public class ServerThread implements Runnable {
                         	fos.write(bytes);
                         	fos.flush();
                         	System.out.println("文件传输完毕！");
-                        	oisInputStream.close();
-                        	fos.close();
+                        	//oisInputStream.close();
+                        	//fos.close();
                         }break;
                         //从服务器将文件下载到客户端
                         case "pull" :   {
-                        	FileInputStream tempFileInputStream = new FileInputStream(path);
+                        	/*
+                        	//获取Socket的输出流，用来向客户端发送数据  
+                        	PrintStream out = new PrintStream(client.getOutputStream());  
+                            //获取Socket的输入流，用来接收从客户端发送过来的数据  
+                            BufferedReader buf = new BufferedReader(new InputStreamReader(client.getInputStream()));  
+                            */
+                        	FileInputStream tempFileInputStream = new FileInputStream(srcPath);
                             OutputStream tempOutputStream = client.getOutputStream();
                             ObjectOutputStream tempObjectOutputStream = new ObjectOutputStream(tempOutputStream);
                             System.out.println("开始预处理要发送的文件...");
-                            File tempFile = new File(path);
+                            File tempFile = new File(srcPath);
                             long filesize = tempFile.length();
                             //先获取文件大小
                             byte[] bytes = new byte[bytesize];
@@ -212,10 +218,10 @@ public class ServerThread implements Runnable {
                             	tempObjectOutputStream.flush();
                             	value = tempFileInputStream.read(bytes);	
                             }
-                            System.out.println("文件上传成功！");
-                            tempFileInputStream.close();
-                            tempOutputStream.close();
-                            tempOutputStream.close();
+                            System.out.println("文件下载成功！");
+                            //tempFileInputStream.close();
+                            //tempOutputStream.close();
+                            //tempObjectOutputStream.close();
                         }break;
             			case "exit"	:	{
             				//System.out.println("--exit--");
