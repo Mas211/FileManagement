@@ -123,12 +123,14 @@ public class FileManagement {
 		return dir.substring(dir.lastIndexOf(File.separator) + 1);
 	}
 	
+	ArrayList<String> tttArrayList = new ArrayList<String>();
 	//复制文件
-	private static boolean copyFile(String srcPath, String destDir) {
+	private boolean copyFile(String srcPath, String destDir) {
 		boolean flag = false;
 		File srcFile = new File(srcPath);
 		if (!srcFile.exists()) { // 源文件不存在
 			System.out.println("源文件不存在");
+			tttArrayList.add("源文件不存在");
 			return false;
 		}
 		// 获取待复制文件的文件名
@@ -137,11 +139,13 @@ public class FileManagement {
 		String destPath = destDir + fileName;
 		if (destPath.equals(srcPath)) { // 源文件路径和目标文件路径重复
 			System.out.println("源文件路径和目标文件路径重复!");
+			tttArrayList.add("源文件路径和目标文件路径重复!");
 			return false;
 		}
 		File destFile = new File(destPath);
 		if (destFile.exists() && destFile.isFile()) { // 该路径下已经有一个同名文件
 			System.out.println("目标目录下已有同名文件!");
+			tttArrayList.add("目标目录下已有同名文件!");
 			return false;
 		}
 		File destFileDir = new File(destDir);
@@ -156,19 +160,20 @@ public class FileManagement {
 			}
 			fis.close();
 			fos.close();
- 
 			flag = true;
 		} catch (IOException e) {
 			//
-		}
-		if (flag) {
-			System.out.println("复制文件成功!");
+			tttArrayList.add("catch");
 		}
 		return flag;
 	}
 	
+	public ArrayList<String> printarray() {
+		return tttArrayList;
+	}
+	
 	//复制文件夹
-	private static boolean copyDirectory(String srcPath, String destDir) {
+	private boolean copyDirectory(String srcPath, String destDir) {
 		boolean flag = false;
  
 		File srcFile = new File(srcPath);
@@ -337,7 +342,6 @@ public class FileManagement {
 		}
 		out.close();
 		is.close();
-		//System.out.println("解密完成");
 		return "解密完成";
 	}
 	

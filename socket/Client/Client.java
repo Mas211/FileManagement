@@ -146,7 +146,7 @@ public class Client {
                 	}*/
                 }catch(SocketTimeoutException e){  
                     System.out.println("Time out, No response");  
-                }  
+                } 
             }  
         }  
         input.close();  

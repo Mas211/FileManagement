@@ -100,6 +100,14 @@ public class ServerThread implements Runnable {
 							}
             			}break;
                         //创建文件夹
+            			case "a" 	:	{
+            				temp = file.printarray();
+            				out.println(SystemPath + ">");
+            				out.println(temp.size());
+            				for (String string : temp) {
+								out.println(string);
+							}
+            			}break;
             			case "cfl"  : 	{
             				String fodlername = path; 
             				temp = file.createFolder(SystemPath + "\\", fodlername);
@@ -238,7 +246,8 @@ public class ServerThread implements Runnable {
                 }  
             }  
             out.close();  
-            client.close();  
+            client.close();
+            System.out.println("服务器关闭");
         }catch(Exception e){  
             e.printStackTrace();  
         }  
