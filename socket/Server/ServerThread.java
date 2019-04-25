@@ -40,7 +40,8 @@ public class ServerThread implements Runnable {
                 //接收从客户端发送过来的数据  
                 String str =  buf.readLine();
                 if(str == null || "".equals(str)){  
-                    flag = false;  
+                	out.println("str为空指令错误，请输入正确的指令！！！");
+                    //flag = false; 
                 }else{  
                     if("bye".equals(str)){  
                         flag = false;  
@@ -100,14 +101,6 @@ public class ServerThread implements Runnable {
 							}
             			}break;
                         //创建文件夹
-            			case "a" 	:	{
-            				temp = file.printarray();
-            				out.println(SystemPath + ">");
-            				out.println(temp.size());
-            				for (String string : temp) {
-								out.println(string);
-							}
-            			}break;
             			case "cfl"  : 	{
             				String fodlername = path; 
             				temp = file.createFolder(SystemPath + "\\", fodlername);
@@ -187,22 +180,15 @@ public class ServerThread implements Runnable {
                         	oisInputStream.readFully(bytes);
                         	fos.write(bytes);
                         	fos.flush();
+                        	fos.close();
                         	System.out.println("文件传输完毕！");
-                        	//oisInputStream.close();
-                        	//fos.close();
                         }break;
                         //从服务器将文件下载到客户端
                         case "pull" :   {
-                        	/*
-                        	//获取Socket的输出流，用来向客户端发送数据  
-                        	PrintStream out = new PrintStream(client.getOutputStream());  
-                            //获取Socket的输入流，用来接收从客户端发送过来的数据  
-                            BufferedReader buf = new BufferedReader(new InputStreamReader(client.getInputStream()));  
-                            */
                         	FileInputStream tempFileInputStream = new FileInputStream(srcPath);
                             OutputStream tempOutputStream = client.getOutputStream();
                             ObjectOutputStream tempObjectOutputStream = new ObjectOutputStream(tempOutputStream);
-                            System.out.println("开始预处理要发送的文件...");
+                            //System.out.println("开始预处理要发送的文件...");
                             File tempFile = new File(srcPath);
                             long filesize = tempFile.length();
                             //先获取文件大小
@@ -210,7 +196,7 @@ public class ServerThread implements Runnable {
                             //计算即将发送字节数组的字数
                             long times = filesize / bytesize + 1;
                             //计算最后一组字节数组的有效字节数
-                            int lastBytes = (int)filesize%bytesize;
+                            int lastBytes = (int)filesize % bytesize;
                             //1.发送字节数组长度
                             tempObjectOutputStream.writeInt(bytesize);
                             //2.发送次数
@@ -226,25 +212,21 @@ public class ServerThread implements Runnable {
                             	tempObjectOutputStream.flush();
                             	value = tempFileInputStream.read(bytes);	
                             }
-                            System.out.println("文件下载成功！");
-                            //tempFileInputStream.close();
-                            //tempOutputStream.close();
-                            //tempObjectOutputStream.close();
+                            tempFileInputStream.close();
                         }break;
             			case "exit"	:	{
-            				//System.out.println("--exit--");
-            				out.println("操作完成，服务器关闭，请尽快退出");
+            				out.println("操作完成，服务器关闭，请尽快退出！！！");
             				out.println(0);
             				System.exit(0);
             			}break;
             			default:{
-            				out.println("指令错误，请输入正确的指令！！");
+            				out.println("指令错误，请输入正确的指令！！！");
             				out.println(0);
             			}
             			}
                     }
                 }  
-            }  
+            }
             out.close();  
             client.close();
             System.out.println("服务器关闭");
