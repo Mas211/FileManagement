@@ -315,7 +315,6 @@ public class FileManagement {
 		OutputStream out = new FileOutputStream(tempUrl);
 		byte[] buffer = new byte[1024];
 		byte[] buffer2 =new byte[1024];
-		byte bMax = (byte)255;
 		long size = file.length();
 		int mod = (int) (size%1024);
 		int div = (int) (size>>10);
@@ -340,6 +339,7 @@ public class FileManagement {
 	
 	public void showDec() throws Exception {
 		System.out.print("需要解密的文件的路径：");
+		@SuppressWarnings("resource")
 		Scanner din = new Scanner(System.in);
 		String srcpath = din.nextLine();
 		System.out.print("解密后的文件的路径：");

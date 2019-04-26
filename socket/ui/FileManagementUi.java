@@ -10,21 +10,23 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.awt.event.ActionEvent;
 import java.awt.TextArea;
 import java.awt.Font;
+import java.awt.Color;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JMenuItem;
+import javax.swing.JMenu;
 
 public class FileManagementUi extends JFrame {
 	/**
@@ -51,7 +53,7 @@ public class FileManagementUi extends JFrame {
 	private JButton pullButton;
 	Socket clientSocket = new Socket();
 	StringBuffer sBuffer  =  new StringBuffer();
-	
+	private JLabel label;
 	
 	public class Client {
 		public String  str = "xxx"; 
@@ -67,95 +69,47 @@ public class FileManagementUi extends JFrame {
 	        	String op = new String();
 	        	String srcpath = new String();
 	        	String destDir = new String();
-	        	String path = new String();
 	        	//System.out.println(SystemPath + ">");
 	        	if(str.trim().lastIndexOf(" ") == -1) {
 	        		op = str;
 	        	}
 				else {
 					String[] command = str.split(" ");
-					if(command.length == 2) {
-						op = command[0];
-						path = command[1];
-					}
-					else if(command.length == 3) {
+					if(command.length == 3) {
 						op = command[0];
 						srcpath = command[1];
 						destDir = command[2];
 						}
 				}
 	        	//发送数据到服务端 
+	        	sBuffer.append("--------------------------\n");
+	        	status.setText(sBuffer.toString());
 	        	out.println(str);
 	        	if (op.equals("push")) {
-		        	/*push I:\test2\3.txt I:\test2\1.txt*/
-		        	//本地的输入流 
-		        	FileInputStream tempFileInputStream = new FileInputStream(srcpath);
-		        	OutputStream tempOutputStream = clientSocket.getOutputStream();
-		        	ObjectOutputStream tempObjectOutputStream = new ObjectOutputStream(tempOutputStream);
-		        	sBuffer.append("开始预处理要发送的文件..." + "\n");
-		        	status.setText(sBuffer.toString());
-		        	File tempFile = new File(srcpath);
-		        	long filesize = tempFile.length();
-		        	//先获取文件大小
-		        	byte[] bytes = new byte[bytesize];
-		        	//计算即将发送字节数组的字数
-		        	long times = filesize / bytesize + 1;
-		        	//计算最后一组字节数组的有效字节数
-		        	int lastBytes = (int)filesize%bytesize;
-		        	//1.发送字节数组长度
-		        	tempObjectOutputStream.writeInt(bytesize);
-		        	//2.发送次数
-		        	tempObjectOutputStream.writeLong(times);
-		        	tempObjectOutputStream.flush();
-		        	//3.最后一次字节个数
-		        	tempObjectOutputStream.writeInt(lastBytes);
-		        	tempObjectOutputStream.flush();
-		        	//读取字节数组长度的字节，返回读取字节数中的数据个数
-		        	int value = tempFileInputStream.read(bytes);
-		        	/*
-		        	while (value != -1) {
-		        		tempObjectOutputStream.write(bytes, 0, bytesize);
-		        		tempObjectOutputStream.flush();
-		        		value = tempFileInputStream.read(bytes);	
-		        	}*/
-		        	while (times > 0) {
-                		tempObjectOutputStream.write(bytes, 0, bytesize);
-                		tempObjectOutputStream.flush();
-                		times--;
+	        		@SuppressWarnings("resource")
+					BufferedReader tempbf = new BufferedReader(new FileReader(srcpath));
+	        		OutputStream tempout = clientSocket.getOutputStream();
+	        		PrintWriter temppw = new PrintWriter(tempout, true);
+	        		String tempString = null;
+	        		while ((tempString = tempbf.readLine()) != null) {
+						temppw.println(tempString);
 					}
-		        	sBuffer.append("文件上传成功！" + "\n");
-		        	status.setText(sBuffer.toString());
-		        	tempFileInputStream.close();
+	        		temppw.println("#@#@Over@#@#");
+	        		sBuffer.append("文件上传成功！\n");
+                	status.setText(sBuffer.toString());
 		        }
 	        	else if(op.equals("pull")) {
-	        		InputStream ins = clientSocket.getInputStream();
-	        		ObjectInputStream oisInputStream = new ObjectInputStream(ins);
-	        		FileOutputStream fos = new FileOutputStream(destDir);
-	        		//System.out.println("开始读取文件....");
-	        		sBuffer.append("开始读取文件...." + "\n");
-	        		status.setText(sBuffer.toString());
-		            //1.读取的数组长度
-		            int len = oisInputStream.readInt();
-		            //2.读取次数
-		            long times = oisInputStream.readLong();
-		            //3.读取最后一次字节长度
-		            int lastBytes = oisInputStream.readInt();
-		            byte[] bytes = new byte[len];
-		            //循环读取文件
-		            while (times > 1) {
-		            	oisInputStream.readFully(bytes);
-		            	fos.write(bytes);
-		            	fos.flush();
-		            	times--;
+	        		@SuppressWarnings("resource")
+					PrintWriter temppw = new PrintWriter(new FileWriter(destDir), true);
+                	String templine = null;
+                	while ((templine = buf.readLine()) != null) {
+                		if(templine.equals("#@#@Over@#@#")) {
+                			break;
+                		}
+						temppw.println(templine);
 					}
-		            //处理最后一次字节数组
-		            bytes = new byte[lastBytes];
-		            oisInputStream.readFully(bytes);
-		            fos.write(bytes);
-		            fos.flush();
-		            fos.close();
-		            sBuffer.append("文件下载完毕！" + "\n");
-		            status.setText(sBuffer.toString());
+                	sBuffer.append("文件下载完毕！\n");
+                	status.setText(sBuffer.toString());
 		        }
 	        	else{  
 	        		try{
@@ -168,13 +122,14 @@ public class FileManagementUi extends JFrame {
 							String eco = buf.readLine();
 							sBuffer.append(eco + "\n");
 				            status.setText(sBuffer.toString());
-				        }
-		                }catch(SocketTimeoutException e){  
+		                }
+	        		}
+		            catch(SocketTimeoutException e){  
 		                	sBuffer.append("Time out, No response" + "\n");
 		                	status.setText(sBuffer.toString());
 		                	status.getText();
-		                } 
-	        		}  
+		            } 
+	        	}  
 	        }
 	    }
 		
@@ -203,9 +158,49 @@ public class FileManagementUi extends JFrame {
 	 * Create the frame.
 	 */
 	public FileManagementUi() {
+		setForeground(Color.WHITE);
+		setTitle("\u8FDC\u7A0B\u6587\u4EF6\u7BA1\u7406\u7CFB\u7EDF");
 		clt = new Client();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 944, 555);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu menu = new JMenu("\u83DC\u5355");
+		menuBar.add(menu);
+		
+		JMenuItem helpMenu = new JMenuItem("\u5E2E\u52A9");
+		helpMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "帮助文档\n"
+						+ "dir 	显示当前路径所有文件\n"
+						+ "cd 	进入文件夹，例：cd E: or cd E:\test2\n"
+						+ "copy	复制文件，第一个参数为当前路径下的文件名，第二个参数为"
+						+ "目的地址中的文件夹名，例：copy 1.txt E:\test2\123\n"
+						+ "cf 	创建文件，输入创建的文件名，例：cf 4.txt\n"
+						+ "cfl	创建文件，输入创建的文件夹名，例：cfl 123\n"
+						+ "df	删除文件，输入需删除的文件，例：df 1.txt\n"
+						+ "dfl 	删除文件夹，输入需删除的文件夹，例：df 123\n"
+						+ "enc	加密文件，输入需加密的文件名，例：enc 1.txt\n"
+						+ "dec	解密文件，第一个参数输入需解密的文件名，第二个参数输入解密后的文件，例：dec 1.txt 2.txt\n"
+						+ "push	上传文件，第一个参数客户端需上传的文件的绝对地址，第二个参数为将该\n"
+						+ "文件放置在服务器的某个位置，也是绝对地址，例: push E:\\test2\\1.txt E:\\test2\\2.txt\n"
+						+ "pull 下载文件，第一个参数为需下载服务器的文件的绝对地址，"
+						+ "第二个参数为客户端将文件下载到的位置，也是绝对地址，例：pull E:\\test2\\1.txt E:\\test2\\2.txt\n", 
+						"帮助文档", JOptionPane.NO_OPTION);
+			}
+		});
+		menu.add(helpMenu);
+		
+		JMenuItem aboutMenu = new JMenuItem("\u5173\u4E8E");
+		menu.add(aboutMenu);
+		aboutMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "版本 v1.3  - 2019年4月\n"
+						+ "作者：mas", "关于", JOptionPane.NO_OPTION);
+			}
+		});
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -237,11 +232,13 @@ public class FileManagementUi extends JFrame {
 		hostText.setBounds(85, 39, 176, 21);
 		contentPane.add(hostText);
 		hostText.setColumns(10);
+		hostText.setText("127.0.0.1");
 		
 		protText = new JTextField();
 		protText.setColumns(10);
 		protText.setBounds(335, 39, 66, 21);
 		contentPane.add(protText);
+		protText.setText("10086");
 		
 		Portlabel = new JLabel("\u7AEF\u53E3");
 		Portlabel.setFont(new Font("宋体", Font.PLAIN, 16));
@@ -249,7 +246,7 @@ public class FileManagementUi extends JFrame {
 		contentPane.add(Portlabel);
 		
 		status = new TextArea();
-		status.setFont(new Font("Dialog", Font.PLAIN, 14));
+		status.setFont(new Font("Times New Roman", Font.PLAIN, 15));
 		status.setBounds(10, 265, 538, 241);
 		contentPane.add(status);
 		
@@ -260,7 +257,7 @@ public class FileManagementUi extends JFrame {
 		
 		opText = new JTextField();
 		opText.setColumns(10);
-		opText.setBounds(322, 110, 176, 21);
+		opText.setBounds(216, 110, 176, 21);
 		contentPane.add(opText);
 		
 		JLabel srcpathlabel = new JLabel("\u8BF7\u8F93\u5165\u539F\u8DEF\u5F84");
@@ -275,12 +272,12 @@ public class FileManagementUi extends JFrame {
 		
 		srcpathText = new JTextField();
 		srcpathText.setColumns(10);
-		srcpathText.setBounds(322, 143, 176, 21);
+		srcpathText.setBounds(216, 143, 176, 21);
 		contentPane.add(srcpathText);
 		
 		despathText = new JTextField();
 		despathText.setColumns(10);
-		despathText.setBounds(322, 176, 176, 21);
+		despathText.setBounds(216, 176, 176, 21);
 		contentPane.add(despathText);
 		
 		JButton sendButton = new JButton("\u53D1\u9001\u547D\u4EE4");
@@ -481,5 +478,11 @@ public class FileManagementUi extends JFrame {
 		cflbutton.setFont(new Font("新宋体", Font.PLAIN, 16));
 		cflbutton.setBounds(650, 192, 224, 32);
 		contentPane.add(cflbutton);
+		
+		label = new JLabel("\u8FD0\u884C\u7ED3\u679C");
+		label.setFont(new Font("新宋体", Font.PLAIN, 16));
+		label.setBounds(22, 234, 108, 25);
+		contentPane.add(label);
+		
 	}
 }

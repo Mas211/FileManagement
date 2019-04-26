@@ -33,7 +33,6 @@ public class Client {
             String op = new String();
             String srcpath = new String();
     		String destDir = new String();
-            String path = new String();
             //System.out.println(SystemPath + ">");
             if(str.trim().lastIndexOf(" ") == -1) {
 				op = str;
@@ -42,7 +41,6 @@ public class Client {
 				String[] command = str.split(" ");
 				if(command.length == 2) {
 					op = command[0];
-    				path = command[1];
 				}
 				else if(command.length == 3) {
 					op = command[0];
@@ -50,7 +48,6 @@ public class Client {
 					destDir = command[2];
 				}
 			}
-            //System.out.println(op);
             //发送数据到服务端 
             out.println(str);
             if("bye".equals(str)){
@@ -59,7 +56,8 @@ public class Client {
             else if (op.equals("push")) {
             	/*push I:\test2\3.txt I:\test2\1.txt*/
                 //本地的输入流 
-                FileInputStream tempFileInputStream = new FileInputStream(srcpath);
+                @SuppressWarnings("resource")
+				FileInputStream tempFileInputStream = new FileInputStream(srcpath);
                 OutputStream tempOutputStream = client.getOutputStream();
                 ObjectOutputStream tempObjectOutputStream = new ObjectOutputStream(tempOutputStream);
                 System.out.println("开始预处理要发送的文件...");
@@ -94,7 +92,8 @@ public class Client {
             else if(op.equals("pull")) {
             	InputStream ins = client.getInputStream();
             	ObjectInputStream oisInputStream = new ObjectInputStream(ins);
-            	FileOutputStream fos = new FileOutputStream(destDir);
+            	@SuppressWarnings("resource")
+				FileOutputStream fos = new FileOutputStream(destDir);
             	System.out.println("开始读取文件....");
             	//1.读取的数组长度
             	int len = oisInputStream.readInt();
