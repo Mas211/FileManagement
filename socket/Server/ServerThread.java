@@ -18,6 +18,7 @@ import File.FileManagement;
  */  
 public class ServerThread implements Runnable {  
 	public final static int bytesize = 2048;
+	//√‹‘ø
 	private static final int numOfEncAndDec = 20164277;
     private Socket client = null;  
     public ServerThread(Socket client){  
